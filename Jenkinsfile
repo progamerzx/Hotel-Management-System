@@ -33,7 +33,11 @@ pipeline{
             steps{
                 withCredentials([
                     usernamePassword(
+<<<<<<< HEAD
                         credentialsId: "docker-creds",
+=======
+                        credentialsID: "docker-creds",
+>>>>>>> refs/remotes/origin/main
                         usernameVariable: "DOCKER_USER",
                         passwordVariable: "DOCKER_PASS"
                     )
