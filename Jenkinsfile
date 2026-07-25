@@ -3,12 +3,12 @@ pipeline {
 
     environment {
         IMAGE_NAME = "ctslab/hms"
-        IMAGE_TAG  = "${BUILD_ID}"
+        IMAGE_TAG = "${BUILD_ID}"
     }
 
     stages {
 
-        stage{
+        stage('Checkout') {
             steps {
                 checkout scm
             }
@@ -34,16 +34,18 @@ pipeline {
             }
         }
 
-        stage('Docker Login'){
-            steps{
+        stage('Docker Login') {
+            steps {
                 withCredentials([
                     usernamePassword(
                         credentialsId: 'dockerhub-creds',
                         usernameVariable: 'DOCKER_USER',
                         passwordVariable: 'DOCKER_PASS'
                     )
-                ]){
-                    bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
+                ]) {
+                    bat """
+                    echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                    """
                 }
             }
         }
