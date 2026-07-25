@@ -32,8 +32,8 @@ pipeline{
         stage('Login to the docker registry'){
             steps{
                 withCredentials([
-                    (
-                        credentialsID:"docker-creds"
+                    usernamePassword(
+                        credentialsID: "docker-creds"
                         usernameVariable: "DOCKER_USER"
                         passwordVariable: "DOCKER_PASS"
                     )
