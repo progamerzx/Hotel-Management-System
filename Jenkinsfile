@@ -1,71 +1,79 @@
-pipeline{
+pipeline {
     agent any
 
-    environment{
+    environment {
         IMAGE_NAME = "ctslab/hms"
-        IMAGE_TAG = "${BUILD_NUMBER}"
+        IMAGE_TAG  = "${BUILD_NUMBER}"
     }
 
-    stages{
-        stage('Build'){
-            steps{
-                // Replaced 'npm run dev' with 'npm run lint' and 'npm run build'
-                // as 'npm run dev' starts a server and will hang the pipeline.
+    stages {
+
+        stage('Build Application') {
+            steps {
                 bat "npm install"
                 bat "npm run lint"
                 bat "npm run build"
             }
         }
 
-        stage('Build the Docker Image'){
-            steps{
-                bat "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
-            }
-        }
-        
-        stage('Verify the docker image'){
-            steps{
-                bat "docker image inspect ${IMAGE_NAME}:${IMAGE_TAG}"
+        stage('Build Docker Image') {
+            steps {
+                bat "docker build -t %IMAGE_NAME%:%IMAGE_TAG% ."
             }
         }
 
-        stage('Login to the docker registry'){
-            steps{
+        stage('Verify Docker Image') {
+            steps {
+                bat "docker image inspect %IMAGE_NAME%:%IMAGE_TAG%"
+            }
+        }
+
+        stage('Docker Login') {
+            steps {
                 withCredentials([
                     usernamePassword(
-                        credentialsID: "docker-creds",
-                        usernameVariable: "DOCKER_USER",
-                        passwordVariable: "DOCKER_PASS"
+                        credentialsId: 'docker-creds',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
                     )
-                ])
-                {
-                    bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
+                ]) {
+                    bat '''
+                    echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                    '''
                 }
             }
         }
 
-        stage('Push Docker Registry'){
-            steps{
-                bat "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
+        stage('Push Docker Image') {
+            steps {
+                bat "docker push %IMAGE_NAME%:%IMAGE_TAG%"
+            }
+        }
+
+        stage('Verify Docker Hub Push') {
+            steps {
+                bat "docker pull %IMAGE_NAME%:%IMAGE_TAG%"
+            }
+        }
+
+        stage('Docker Logout') {
+            steps {
                 bat "docker logout"
             }
         }
-
-        stage('Verify Dockerhub Push'){
-            steps{
-                bat "docker pull ${IMAGE_NAME}:${IMAGE_TAG}"
-            }
-        }
-        
     }
 
-    post{
-        success{
-            echo "Pipeline successfully executed"
+    post {
+        success {
+            echo 'Pipeline executed successfully.'
         }
 
         failure {
-            echo "Pipeline Failed"
+            echo 'Pipeline execution failed.'
+        }
+
+        always {
+            bat "docker image prune -f"
         }
     }
 }
