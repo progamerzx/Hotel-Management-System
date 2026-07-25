@@ -3,10 +3,16 @@ pipeline {
 
     environment {
         IMAGE_NAME = "ctslab/hms"
-        IMAGE_TAG  = "${BUILD_NUMBER}"
+        IMAGE_TAG  = "${BUILD_ID}"
     }
 
     stages {
+
+        stage{
+            steps {
+                checkout scm
+            }
+        }
 
         stage('Build Application') {
             steps {
@@ -18,41 +24,39 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                bat "docker build -t %IMAGE_NAME%:%IMAGE_TAG% ."
+                bat "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
             }
         }
 
         stage('Verify Docker Image') {
             steps {
-                bat "docker image inspect %IMAGE_NAME%:%IMAGE_TAG%"
+                bat "docker image inspect ${IMAGE_NAME}:${IMAGE_TAG}"
             }
         }
 
-        stage('Docker Login') {
-            steps {
+        stage('Docker Login'){
+            steps{
                 withCredentials([
                     usernamePassword(
-                        credentialsId: 'docker-creds',
+                        credentialsId: 'dockerhub-creds',
                         usernameVariable: 'DOCKER_USER',
                         passwordVariable: 'DOCKER_PASS'
                     )
-                ]) {
-                    bat '''
-                    echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
-                    '''
+                ]){
+                    bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
                 }
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                bat "docker push %IMAGE_NAME%:%IMAGE_TAG%"
+                bat "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
             }
         }
 
         stage('Verify Docker Hub Push') {
             steps {
-                bat "docker pull %IMAGE_NAME%:%IMAGE_TAG%"
+                bat "docker pull ${IMAGE_NAME}:${IMAGE_TAG}"
             }
         }
 
@@ -70,10 +74,6 @@ pipeline {
 
         failure {
             echo 'Pipeline execution failed.'
-        }
-
-        always {
-            bat "docker image prune -f"
         }
     }
 }
