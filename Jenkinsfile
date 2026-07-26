@@ -8,7 +8,7 @@ pipeline {
 
     stages {
 
-        stage{
+        stage('Checkout'){
             steps {
                 checkout scm
             }
@@ -39,7 +39,6 @@ pipeline {
                 withCredentials([
                     usernamePassword(
                         credentialsId: 'dockerhub-creds',
-                        credentialsId: 'dockerhub-creds',
                         usernameVariable: 'DOCKER_USER',
                         passwordVariable: 'DOCKER_PASS'
                     )
@@ -58,11 +57,6 @@ pipeline {
         stage('Verify Docker Hub Push') {
             steps {
                 bat "docker pull ${IMAGE_NAME}:${IMAGE_TAG}"
-            }
-        }
-
-        stage('Docker Logout') {
-            steps {
                 bat "docker logout"
             }
         }
