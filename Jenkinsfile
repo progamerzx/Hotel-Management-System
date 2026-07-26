@@ -1,6 +1,5 @@
 pipeline {
     agent any
-
     environment {
         IMAGE_NAME = "ctslab/hms"
         IMAGE_TAG = "${BUILD_ID}"
