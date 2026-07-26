@@ -6,8 +6,6 @@ A modern, responsive Hotel Management System web application built with **React 
 
 ## 📸 Screenshots
 
-> *Note: Add your screenshot image links below.*
-
 | Home View | Rooms & Booking | Services |
 | :---: | :---: | :---: |
 | ![alt text](image.png)| ![alt text](image-1.png) | ![alt text](image-2.png) |
